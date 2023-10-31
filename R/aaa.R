@@ -77,11 +77,13 @@ getVolumes <- function(exclude) {
         volumes <- c(volumes, media)
       }
     } else if (osSystem == "Windows") {
-      is_R_locale_jp_cp932 <- function(){Sys.getlocale('LC_CTYPE') == "Japanese_Japan.932"}
       wmic <- paste0(Sys.getenv("SystemRoot"), "\\System32\\Wbem\\WMIC.exe")
       if (!file.exists(wmic)) {
-        volumes_info <- system2("powershell", "$dvr=[System.IO.DriveInfo]::GetDrives();Write-Output $dvr.length $dvr.name $dvr.VolumeLabel;", stdout = TRUE)
-        if (!is_R_locale_jp_cp932()) {volumes_info <- volumes_info |> iconv(from='cp932',to='utf-8')} else {}
+        if(Sys.getlocale(category = "LC_CTYPE") == "Japanese_Japan.utf8"){
+          volumes_info <- system2("powershell", "$dvr=[System.IO.DriveInfo]::GetDrives();Write-Output $dvr.length $dvr.name $dvr.VolumeLabel;", stdout = TRUE) |> iconv(from='cp932',to='utf-8')
+        } else {
+          volumes_info <- system2("powershell", "$dvr=[System.IO.DriveInfo]::GetDrives();Write-Output $dvr.length $dvr.name $dvr.VolumeLabel;", stdout = TRUE) 
+        }
         num = as.integer(volumes_info[1])
         if(num == 0) return(NULL)
         mat <- matrix(volumes_info[-1], nrow = num, ncol = 2)
@@ -96,11 +98,12 @@ getVolumes <- function(exclude) {
         volumes <- sub(" *\\r$", "", volumes)
         keep <- !tolower(volumes) %in% c("caption", "")
         volumes <- volumes[keep]
-        volNames <- system(paste(wmic, "/FAILFAST:1000 logicaldisk get VolumeName"), intern = TRUE, ignore.stderr=TRUE)
-        if (is_R_locale_jp_cp932()) {volNames <- sub(" *\\r$", "", volNames)} else {
-            volNames <- volNames |> iconv(from='cp932',to='utf-8')
-            volNames <- sub(" *\\r$", "", volNames)
+        if(Sys.getlocale(category = "LC_CTYPE") == "Japanese_Japan.utf8"){
+          volNames <- system(paste(wmic, "/FAILFAST:1000 logicaldisk get VolumeName"), intern = TRUE, ignore.stderr=TRUE) |> iconv(from='cp932',to='utf-8')
+        } else {
+          volNames <- system(paste(wmic, "/FAILFAST:1000 logicaldisk get VolumeName"), intern = TRUE, ignore.stderr=TRUE)
         }
+        volNames <- sub(" *\r$", "", volNames)
         volNames <- volNames[keep]
         volNames <- paste0(volNames, ifelse(volNames == "", "", " "))
         volNames <- paste0(volNames, "(", volumes, ")")

@@ -26,7 +26,7 @@ Description: Provides functionality for client-side navigation of
 License: GPL (>= 2)
 Encoding: UTF-8
 Imports: htmltools, jsonlite, tools, shiny (>= 1.1.0), fs (>= 1.2.6),
-        tibble (>= 1.4.2)
+        tibble (>= 1.4.2),withr
 Collate: 'aaa.R' 'filechoose.R' 'dirchoose.R' 'filesave.R'
         'shinyFiles-package.R'
 RoxygenNote: 7.2.1
